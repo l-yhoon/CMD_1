@@ -99,7 +99,7 @@ public class PlayerMove : MonoBehaviour
                 OnAttack(collision.transform);
             }
             else
-                OnDameged(collision.transform.position);
+                OnDameged(collision.collider.bounds.center);
         }
 
     }
@@ -141,6 +141,7 @@ public class PlayerMove : MonoBehaviour
         EnemyMove enemyMove = enemy.GetComponent<EnemyMove>();
         enemyMove.OnDamaged();
         AudioPlay("ATTACK");
+        gameManager.stagePoint += 100;
     }
     // 피격 이벤트
     void OnDameged(Vector2 targetPos)
@@ -159,9 +160,12 @@ public class PlayerMove : MonoBehaviour
         anim.SetTrigger("IsDamaged");
 
         //반응
-        int dirc = transform.position.x - targetPos.x > 0 ? 1 : -1;
+        int dirc = Collider.bounds.center.x - targetPos.x > 0 ? 1 : -1;;
+        
+        // 기존 속도 무효화
+        rigid.linearVelocity = Vector2.zero; 
+    
         rigid.AddForce(new Vector2(dirc * 8, 5), ForceMode2D.Impulse);
-
         //피격후 경직
         is_damaged = true;
 

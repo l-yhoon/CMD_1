@@ -19,9 +19,38 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI UIstage;
     public GameObject RestartBtn;
 
+    // --- [추가] 제한시간 관련 변수 ---
+    public TextMeshProUGUI UItime; 
+    public float maxTime; 
+    float currentTime; 
+    // --------------------------------
+
+    void Start()
+    {
+        // 시작 시 시간 초기화
+        currentTime = maxTime;
+    }
+
+
     void Update()
     {
         UIpoint.text = (totalPoint + stagePoint).ToString();
+
+        // --- [추가] 제한시간 계산 및 UI 적용 ---
+        if (health > 0 && currentTime > 0)
+        {
+            currentTime -= Time.deltaTime;
+            UItime.text = Mathf.CeilToInt(currentTime).ToString(); // 소수점 올림하여 정수로 표시
+
+            // 시간 초과 시 사망 처리
+            if (currentTime <= 0) 
+            {
+                currentTime = 0;
+                health = 1; // 체력이 몇이든 즉사하도록 1로 만듦
+                HealthDown(); 
+            }
+        }
+        // --------------------------------------
     }
 
     public void NextStage()
@@ -36,6 +65,8 @@ public class GameManager : MonoBehaviour
         }
         else // 게임 클리어
         {
+            int timeBonus = Mathf.CeilToInt(currentTime) * 10;
+            stagePoint += timeBonus;
             Time.timeScale = 0;
             RestartBtn.GetComponentInChildren<TextMeshProUGUI>().text = "Restart?";
             RestartBtn.SetActive(true);
@@ -51,7 +82,7 @@ public class GameManager : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player")
         {
-            
+            health = 1;
             HealthDown(); //체력 시스템 쓸거면 활성화
 
             //원래 위치로 돌려보내기
@@ -66,7 +97,8 @@ public class GameManager : MonoBehaviour
     public void HealthDown()
     {   
         UIhealth[health - 1].color = new Color(1, 1, 1, 0.4f);
-   
+
+            stagePoint -= 100;
             health--;
         if(health <= 0)
         {
